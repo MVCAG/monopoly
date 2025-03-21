@@ -12,6 +12,7 @@ import com.dallascollege.monopoly.ui.screens.TokenSelectionScreen
 import com.dallascollege.monopoly.ui.screens.PlayerSelectionScreen
 import com.dallascollege.monopoly.ui.screens.TurnOrderScreen
 import com.dallascollege.monopoly.ui.screens.MenuScreen
+import com.dallascollege.monopoly.ui.screens.StartingMoneyScreen
 import com.dallascollege.monopoly.ui.layout.Layout
 
 @Composable
@@ -24,18 +25,28 @@ fun App() {
     var turnOrderConfirmed by remember { mutableStateOf(false) }
     var turnOrder by remember { mutableStateOf<List<String>>(emptyList()) }
 
+
+    var showStartingMoneyScreen by remember { mutableStateOf(false) }
+
     when {
         showMenu -> {
             MenuScreen { showMenu = false }
         }
         playerCount == null -> {
+
             PlayerSelectionScreen { count ->
                 playerCount = count
                 players.clear()
                 players.addAll(List(count) { Player(id = it + 1, name = "Player ${it + 1}", token = Token.TOP_HAT) })
             }
         }
-        !allTokensSelected -> {
+        playerCount != null && players.isNotEmpty() && !showStartingMoneyScreen -> {
+
+            StartingMoneyScreen(players) {
+                showStartingMoneyScreen = true
+            }
+        }
+        playerCount != null && players.isNotEmpty() && showStartingMoneyScreen && !allTokensSelected -> {
             TokenSelectionScreen(players) { player, token ->
                 selectedTokens[player] = token
                 if (selectedTokens.size == players.size) {
@@ -54,7 +65,6 @@ fun App() {
         }
         else -> {
             val currentPlayer = turnOrder.firstOrNull() ?: "Player"
-
             val gameBoard = GameBoard(players.toTypedArray())
             gameBoard.createModels()
 
